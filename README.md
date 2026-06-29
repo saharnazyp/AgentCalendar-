@@ -42,30 +42,6 @@ BOSS_EMAIL           = boss@example.com
 
 Full step-by-step guide in [`docs/setup.md`](docs/setup.md).
 
-## 🔧 Sync with `clasp` (recommended)
-
-Since this is an Apps Script project, the official `clasp` CLI keeps your local Git repo and the live project in sync:
-
-```bash
-npm install -g @google/clasp
-clasp login
-
-cp .clasp.json.example .clasp.json   # then add your Script ID
-clasp pull                            # fetch from Apps Script
-clasp push                            # send local code up
-```
-
-### First push to GitHub
-
-```bash
-git init
-git add .
-git commit -m "Initial commit: ChronoDesk"
-git branch -M main
-git remote add origin https://github.com/USERNAME/chronodesk.git
-git push -u origin main
-```
-
 > `.clasp.json` is git-ignored (it holds your private Script ID), so it never gets committed.
 
 ## 📂 Structure
