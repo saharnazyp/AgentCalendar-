@@ -20,7 +20,7 @@
 |------|-------------|
 | `TELEGRAM_BOT_TOKEN` | `1234567890:AA...` (توکن جدید) |
 | `CHAT_ID` | `@SPO_Assistant` |
-| `BOSS_CALENDAR_ID` | `spogroup.office@gmail.com` |
+| `BOSS_CALENDAR_ID` | `a@example.com` |
 | `RECIPIENT_EMAIL` | `a@example.com, b@example.com` |
 | `BOSS_EMAIL` | `boss@example.com` |
 
