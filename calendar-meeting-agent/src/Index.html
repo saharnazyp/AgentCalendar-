@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>مانیتور جلسات دفتر مدیرعامل</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800;900&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Vazirmatn',sans-serif; }
+html,body { height:100%; overflow:hidden; }
+body { background:#0a0e1a; color:#fff; transition:background .6s ease; user-select:none; }
+body.state-idle { background:#0a0e1a; }
+body.state-running { background:#0c2a1a; }
+body.state-warn { background:#3a3000; animation:pulseYellow 1s infinite; }
+body.state-red { background:#3a0808; animation:pulseRed .9s infinite; }
+body.state-end { background:#3a0808; animation:pulseRed .55s infinite; }
+@keyframes pulseYellow { 0%,100%{background:#3a3000;} 50%{background:#7a6500;} }
+@keyframes pulseRed { 0%,100%{background:#3a0808;} 50%{background:#a00000;} }
+.light-bar { position:fixed; left:0; right:0; height:14px; z-index:50; opacity:0; transition:opacity .4s; }
+.light-bar.top{top:0;} .light-bar.bottom{bottom:0;}
+body.state-warn .light-bar { opacity:1; background:#ffd000; box-shadow:0 0 40px 12px #ffd000; animation:blink 1s infinite; }
+body.state-red .light-bar { opacity:1; background:#ff1a1a; box-shadow:0 0 50px 16px #ff1a1a; animation:blink .8s infinite; }
+body.state-end .light-bar { opacity:1; background:#ff1a1a; box-shadow:0 0 50px 16px #ff1a1a; animation:blink .45s infinite; }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.2;} }
+.screen { height:100vh; display:flex; flex-direction:column; }
+header { position:fixed; top:0; left:0; right:0; display:flex; justify-content:space-between; align-items:center; padding:10px 34px 8px; z-index:30; }
+.clock { font-size:30px; font-weight:700; font-variant-numeric:tabular-nums; line-height:1; }
+.date { font-size:14px; opacity:.6; margin-top:2px; }
+.brand { font-size:19px; font-weight:800; opacity:.85; text-align:left; }
+.hdr-logo img { width:200px; height:auto; background:rgba(255,255,255,.94); padding:9px 16px; border-radius:14px; filter:drop-shadow(0 4px 16px rgba(0,0,0,.4)); display:block; }
+.hdr-logo .logo-text { font-size:22px; font-weight:900; opacity:.85; letter-spacing:1px; }
+.sync { font-size:11px; opacity:.4; margin-top:4px; }
+.center { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:90px 20px 10px; min-height:0; transition:all .4s ease; }
+.status-label { font-size:24px; font-weight:700; letter-spacing:4px; opacity:.75; margin:0 0 8px; }
+.meeting-title { font-size:50px; font-weight:900; margin-bottom:6px; line-height:1.2; }
+.meeting-time { font-size:23px; opacity:.6; margin-bottom:16px; font-variant-numeric:tabular-nums; }
+.countdown { font-size:210px; font-weight:900; line-height:.95; font-variant-numeric:tabular-nums; letter-spacing:4px; text-shadow:0 0 60px rgba(0,0,0,.45); }
+.countdown-label { font-size:32px; font-weight:800; margin-top:6px; }
+.alert-msg { font-size:32px; font-weight:900; margin-top:20px; line-height:1.5; max-width:1000px; }
+.big-msg { font-size:104px; font-weight:900; letter-spacing:6px; }
+.big-icon { font-size:170px; line-height:1; margin-bottom:6px; }
+.sub-msg { font-size:34px; font-weight:700; opacity:.85; margin-top:12px; }
+.end-note { font-size:30px; font-weight:600; margin-top:26px; line-height:1.7; max-width:1100px; opacity:.92; }
+.next-up { margin-top:44px; font-size:23px; opacity:.6; }
+.next-up b { opacity:.95; font-weight:800; }
+.progress-wrap { width:64vw; max-width:1000px; margin-top:36px; }
+.progress-bar { height:14px; border-radius:8px; background:rgba(255,255,255,.12); overflow:hidden; }
+.progress-fill { height:100%; width:0%; background:#22c55e; transition:width 1s linear,background .5s; border-radius:8px; }
+body.state-warn .progress-fill { background:#ffd000; }
+body.state-red .progress-fill, body.state-end .progress-fill { background:#ff1a1a; }
+.progress-meta { display:flex; justify-content:space-between; font-size:16px; opacity:.5; margin-top:9px; }
+.bottom { flex-shrink:0; background:rgba(255,255,255,.04); border-top:1px solid rgba(255,255,255,.1); padding:12px 40px; display:flex; gap:30px; align-items:flex-start; overflow-x:auto; max-height:28vh; }
+.bottom.hidden { display:none; }
+.b-block { flex-shrink:0; max-width:42vw; }
+.b-block h4 { font-size:13px; opacity:.5; font-weight:700; letter-spacing:1px; margin-bottom:5px; }
+.b-block .val { font-size:16px; line-height:1.7; }
+.b-block .val.muted { opacity:.4; }
+.guest { display:inline-flex; align-items:center; gap:5px; background:rgba(255,255,255,.07); padding:4px 11px; border-radius:18px; margin:2px 3px 2px 0; font-size:14px; }
+.gdot { width:8px; height:8px; border-radius:50%; }
+.gdot.حاضر{background:#22c55e;} .gdot.غایب{background:#ef4444;} .gdot.شاید{background:#f59e0b;} .gdot.دعوت‌شده{background:#9ca3af;}
+.meet-link { display:inline-block; background:#2563eb; color:#fff; text-decoration:none; padding:8px 16px; border-radius:9px; font-size:15px; font-weight:700; }
+.file-chip { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); padding:8px 14px; border-radius:10px; margin:3px 4px 3px 0; font-size:15px; font-weight:600; cursor:pointer; transition:background .2s; }
+.file-chip:hover { background:rgba(255,255,255,.18); }
+.file-chip .fi { font-size:18px; }
+.viewer-overlay { position:fixed; top:0; bottom:0; left:0; width:50vw; height:100vh; background:#525659; z-index:200; display:none; flex-direction:column; box-shadow:6px 0 40px rgba(0,0,0,.5); border-left:2px solid rgba(255,255,255,.15); }
+.viewer-overlay.open { display:flex; }
+body.viewer-open .screen { margin-left:50vw; }
+.screen { transition:margin .35s ease; }
+.viewer-head { display:flex; justify-content:space-between; align-items:center; padding:10px 16px; background:#2b2f38; border-bottom:1px solid rgba(255,255,255,.12); flex-shrink:0; }
+.viewer-head .vt { font-size:16px; font-weight:700; color:#fff; }
+.viewer-head .vactions { display:flex; gap:8px; align-items:center; }
+.viewer-head .vbtn { background:#2563eb; color:#fff; text-decoration:none; border:none; padding:8px 14px; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+.viewer-head .vclose { background:#ff3b3b; color:#fff; border:none; width:38px; height:38px; border-radius:9px; font-size:20px; cursor:pointer; font-weight:700; }
+.viewer-head .vclose:hover, .viewer-head .vbtn:hover { opacity:.88; }
+.viewer-body { flex:1 1 auto; position:relative; background:#525659; min-height:0; }
+.viewer-body iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:0; display:block; }
+.viewer-loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#eee; font-size:17px; text-align:center; padding:20px; }
+.viewer-loading a { color:#7ab8ff; font-weight:700; }
+</style>
+</head>
+<body class="state-idle">
+<div class="light-bar top"></div>
+<div class="light-bar bottom"></div>
+<div class="screen">
+<header>
+<div>
+<div class="clock" id="clock">--:--:--</div>
+<div class="date" id="date">—</div>
+</div>
+<!-- لوگو: تصویر خود را در data-image جایگزین کنید یا متن زیر را نگه دارید -->
+<div class="hdr-logo"><span class="logo-text">SPO Group</span><span class="sync" id="sync" style="display:none"></span></div>
+</header>
+<div class="center" id="center"></div>
+<div class="bottom" id="bottom"></div>
+</div>
+<!-- File viewer overlay (left panel) -->
+<div class="viewer-overlay" id="viewer">
+<div class="viewer-head">
+<div class="vt" id="viewer-title">فایل</div>
+<div class="vactions">
+<a id="viewer-newtab" class="vbtn" href="#" target="_blank" style="display:none">باز کردن کامل ↗</a>
+<button class="vclose" onclick="closeViewer()">✕</button>
+</div>
+</div>
+<div class="viewer-body" id="viewer-body"></div>
+</div>
+<script>
+let meetings = [];
+const YELLOW_MIN = 8;
+const RED_MIN = 2;
+const END_SEC = 30;
+const END_NOTE = 'با تشکر از مشارکت شما در این نشست، خواهشمند است جهت رعایت زمان‌بندی جلسات، اتاق را برای برنامه بعدی آزاد فرمایید.';
+const soundOn = true;
+let lastState = 'idle', lastBeepKey = '', audioCtx = null;
+function pad(n){ return String(n).padStart(2,'0'); }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toMin(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
+function nowMin(){ const d=new Date(); return d.getHours()*60+d.getMinutes()+d.getSeconds()/60; }
+function fmtRange(s,e){ return s+' – '+e; }
+function currentMeeting(){ const n=nowMin(); return meetings.find(m=>toMin(m.start)<=n && n<toMin(m.end))||null; }
+function nextMeeting(){ const n=nowMin(); return meetings.filter(m=>toMin(m.start)>n).sort((a,b)=>toMin(a.start)-toMin(b.start))[0]||null; }
+function beep(freq,dur,type){
+if(!soundOn) return;
+try{
+if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+o.type=type||'sine'; o.frequency.value=freq; o.connect(g); g.connect(audioCtx.destination);
+g.gain.setValueAtTime(.25,audioCtx.currentTime);
+g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+dur);
+o.start(); o.stop(audioCtx.currentTime+dur);
+}catch(e){}
+}
+function maybeBeep(key,fn){ if(lastBeepKey!==key){ lastBeepKey=key; fn(); } }
+function setState(s){ if(s===lastState) return; lastState=s; document.body.className='state-'+s; }
+function refreshMeetings(){
+google.script.run
+.withSuccessHandler(function(res){
+const sync=document.getElementById('sync');
+if(res.error){ sync.innerHTML='<span style="color:#ff8888">'+res.error+'</span>'; return; }
+meetings = res.meetings || [];
+const t=new Date();
+sync.textContent='✓ همگام‌سازی — '+pad(t.getHours())+':'+pad(t.getMinutes());
+})
+.withFailureHandler(function(){ document.getElementById('sync').innerHTML='<span style="color:#ff8888">خطا در اتصال</span>'; })
+.getTodayMeetings();
+}
+function fileIcon(mime){
+if(!mime) return '📎';
+if(mime.indexOf('pdf')>-1) return '📕';
+if(mime.indexOf('image')>-1) return '🖼️';
+if(mime.indexOf('word')>-1||mime.indexOf('document')>-1) return '📝';
+if(mime.indexOf('sheet')>-1||mime.indexOf('excel')>-1) return '📊';
+if(mime.indexOf('presentation')>-1) return '📑';
+return '📎';
+}
+function openFile(fileId, fileUrl, title, mime){
+const overlay=document.getElementById('viewer');
+const body=document.getElementById('viewer-body');
+const newtab=document.getElementById('viewer-newtab');
+document.getElementById('viewer-title').textContent=title||'فایل';
+overlay.classList.add('open');
+document.body.classList.add('viewer-open');
+newtab.style.display='none';
+let id=fileId;
+if(!id && fileUrl){ const m=fileUrl.match(/[-\w]{25,}/); if(m) id=m[0]; }
+if(!id){
+body.innerHTML='<div class="viewer-loading">شناسه فایل در دسترس نیست</div>';
+return;
+}
+const preview='https://drive.google.com/file/d/'+id+'/preview';
+const viewUrl='https://drive.google.com/file/d/'+id+'/view';
+body.innerHTML='<iframe src="'+preview+'" allow="autoplay"></iframe>';
+newtab.href=viewUrl; newtab.style.display='inline-block';
+}
+function closeViewer(){
+const ov=document.getElementById('viewer');
+if(ov){ ov.classList.remove('open'); }
+document.body.classList.remove('viewer-open');
+const b=document.getElementById('viewer-body');
+if(b){ b.innerHTML=''; }
+const nt=document.getElementById('viewer-newtab');
+if(nt){ nt.style.display='none'; }
+}
+function renderDetails(m){
+const bottom=document.getElementById('bottom');
+if(!m){ bottom.classList.add('hidden'); bottom.innerHTML=''; return; }
+bottom.classList.remove('hidden');
+let html='';
+html+='<div class="b-block"><h4>📋 جلسه</h4><div class="val">'+esc(m.title)+' &nbsp;|&nbsp; 🕐 '+fmtRange(m.start,m.end)+'</div></div>';
+html+='<div class="b-block"><h4>📍 محل</h4>';
+html+= m.location ? '<div class="val">'+esc(m.location)+'</div>' : '<div class="val muted">ثبت نشده</div>';
+html+='</div>';
+if(m.description){
+html+='<div class="b-block"><h4>📝 توضیحات</h4><div class="val">'+esc(m.description)+'</div></div>';
+}
+html+='<div class="b-block"><h4>👥 مهمان‌ها ('+m.guests.length+')</h4>';
+if(m.guests.length){
+html+='<div class="val">';
+m.guests.forEach(function(g){ html+='<span class="guest"><span class="gdot '+g.status+'"></span>'+esc(g.name)+'</span>'; });
+html+='</div>';
+} else { html+='<div class="val muted">ثبت نشده</div>'; }
+html+='</div>';
+if(m.attachments && m.attachments.length){
+html+='<div class="b-block"><h4>📎 فایل‌های پیوست ('+m.attachments.length+')</h4><div class="val">';
+m.attachments.forEach(function(a){
+const fid = esc(a.fileId||'');
+const furl = esc(a.fileUrl||'');
+const ttl = esc(a.title||'فایل');
+html+='<span class="file-chip" onclick="openFile(\''+fid+'\',\''+furl+'\',\''+ttl.replace(/\x27/g,"")+'\',\''+esc(a.mimeType||'')+'\')"><span class="fi">'+fileIcon(a.mimeType)+'</span>'+ttl+'</span>';
+});
+html+='</div></div>';
+}
+if(m.meetLink){
+html+='<div class="b-block"><h4>🔗 لینک</h4><a class="meet-link" href="'+esc(m.meetLink)+'" target="_blank">ورود به جلسه آنلاین</a></div>';
+}
+bottom.innerHTML=html;
+}
+function tick(){
+const now=new Date();
+document.getElementById('clock').textContent=pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+document.getElementById('date').textContent=now.toLocaleDateString('fa-IR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+const center=document.getElementById('center');
+const cur=currentMeeting();
+const n=nowMin();
+if(cur){
+const remainingMin = toMin(cur.end)-n;
+const remainingSec = remainingMin*60;
+const total = toMin(cur.end)-toMin(cur.start);
+const pct = Math.min(100,Math.max(0,((total-remainingMin)/total)*100));
+const remMin = Math.floor(remainingMin), remSec = Math.floor((remainingMin-remMin)*60);
+let state, label='', labelColor='', alert='';
+if(remainingSec <= END_SEC){
+state='end';
+} else if(remainingMin <= RED_MIN){
+state='red';
+label='⏳ کمتر از ۲ دقیقه تا پایان';
+labelColor='#ff5555';
+alert='در صورت نیاز به تمدید جلسه، لطفاً به دفتر مدیرعامل اعلام شود';
+} else if(remainingMin <= YELLOW_MIN){
+state='warn';
+label='⚠️ نزدیک پایان جلسه';
+labelColor='#ffd000';
+} else {
+state='running';
+label='زمان باقی‌مانده';
+}
+setState(state);
+if(state==='warn') maybeBeep('w-'+cur.id,function(){ beep(660,.2,'sine'); });
+else if(state==='red') maybeBeep('r-'+cur.id,function(){ beep(880,.15,'square'); setTimeout(function(){beep(880,.15,'square');},220); });
+else if(state==='end') maybeBeep('e-'+cur.id,function(){ beep(440,.3,'sawtooth'); setTimeout(function(){beep(330,.4,'sawtooth');},350); });
+else if(lastBeepKey && state==='running') lastBeepKey='';
+if(state==='end'){
+center.innerHTML=
+'<div class="big-icon">⌛</div>'+
+'<div class="big-msg">پایان جلسه</div>'+
+'<div class="sub-msg">'+esc(cur.title)+'</div>'+
+'<div class="end-note">'+END_NOTE+'</div>';
+} else {
+center.innerHTML=
+'<div class="status-label">جلسه در جریان</div>'+
+'<div class="meeting-title">'+esc(cur.title)+'</div>'+
+'<div class="meeting-time">'+fmtRange(cur.start,cur.end)+'</div>'+
+'<div class="countdown">'+pad(remMin)+':'+pad(remSec)+'</div>'+
+'<div class="countdown-label" style="'+(labelColor?'color:'+labelColor:'')+'">'+label+'</div>'+
+(alert?'<div class="alert-msg" style="color:#ff7777">'+alert+'</div>':'')+
+'<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>'+
+'<div class="progress-meta"><span>'+cur.start+'</span><span>'+Math.round(pct)+'%</span><span>'+cur.end+'</span></div></div>';
+}
+renderDetails(cur);
+} else {
+setState('idle'); if(lastBeepKey) lastBeepKey='';
+const nx=nextMeeting();
+center.innerHTML=
+'<div class="status-label">آماده</div>'+
+'<div class="meeting-title" style="opacity:.6">جلسه‌ای در جریان نیست</div>'+
+(nx?'<div class="next-up">جلسه بعدی: <b>'+esc(nx.title)+'</b> — ساعت <b>'+nx.start+'</b></div>':'<div class="next-up">جلسه‌ای برای امروز ثبت نشده</div>');
+renderDetails(nx);
+}
+}
+refreshMeetings();
+setInterval(refreshMeetings, 60000);
+tick();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
