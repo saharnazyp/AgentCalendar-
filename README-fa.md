@@ -33,8 +33,8 @@
 
 ```
 TELEGRAM_BOT_TOKEN   = توکن جدید بات
-CHAT_ID              = @SPO_Assistant
-BOSS_CALENDAR_ID     = spogroup.office@gmail.com
+CHAT_ID              = @آدرس کانال شما 
+BOSS_CALENDAR_ID     = ایمیل دریافت کننده جلسات 
 RECIPIENT_EMAIL      = a@example.com, b@example.com
 BOSS_EMAIL           = boss@example.com
 ```
