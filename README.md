@@ -30,8 +30,8 @@ If your Telegram bot token has ever been exposed, revoke it **right now** in [@B
 
 ```
 TELEGRAM_BOT_TOKEN   = your fresh bot token
-CHAT_ID              = @SPO_Assistant
-BOSS_CALENDAR_ID     = spogroup.office@gmail.com
+CHAT_ID              = @yourChanell
+BOSS_CALENDAR_ID     = name@co-mail.com
 RECIPIENT_EMAIL      = a@example.com, b@example.com
 BOSS_EMAIL           = boss@example.com
 ```
